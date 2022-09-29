@@ -43,6 +43,7 @@ public class SqsClient {
       com.amazonaws.auth.DefaultAWSCredentialsProviderChain.class;
 
   private final AmazonSQS client;
+  private final List<String> messageAttributeNames;
 
   public SqsClient(SqsConnectorConfig config) {
     Map<String, Object> credentialProviderConfigs = config.originalsWithPrefix(
@@ -70,6 +71,8 @@ public class SqsClient {
 //      builder.setRegion(region);
 //    }
 //    log.info("AmazonSQS using profile={}, region={}", profile, region);
+
+    messageAttributeNames = config.getList(SqsConnectorConfigKeys.SQS_MESSAGE_ATTRIBUTES.getValue());
 
     client = builder.build();
   }
@@ -113,6 +116,11 @@ public class SqsClient {
     //
     final ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(url)
         .withMaxNumberOfMessages(maxMessages).withWaitTimeSeconds(waitTimeSeconds).withAttributeNames("");
+
+    if ( messageAttributeNames != null && !messageAttributeNames.isEmpty()){
+      receiveMessageRequest.withMessageAttributeNames(messageAttributeNames);
+    }
+    
     final ReceiveMessageResult result = client.receiveMessage(receiveMessageRequest);
     final List<Message> messages = result.getMessages();
 
